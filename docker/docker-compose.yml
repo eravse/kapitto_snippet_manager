@@ -1,15 +1,11 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  kapitto_snippet-manager:
+    image: eravse/kapitto_snippet_manager:latest
     container_name: kapitto_snippet_manager
     ports:
       - "3012:3000"
-    env_file:
-      - .env
+    restart: always
     volumes:
       - ./prisma/data:/prisma/data
-    restart: always

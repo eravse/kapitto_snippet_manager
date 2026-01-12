@@ -1,5 +1,5 @@
 {
-  "name": "snippet-manager",
+  "name": "kapitto-snippet-manager",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,9 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:push": "prisma db push",  
+    "db:studio": "prisma studio",
+    "db:seed": "npx tsx prisma/seed.ts",
+    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
@@ -35,7 +36,11 @@
     "postcss": "^8.4.38",
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.3",
+    "ts-node": "^10.9.2",
     "tsx": "^4.7.0",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   }
 }

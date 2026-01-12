@@ -1,11 +1,12 @@
 # 1. Aşama: Bağımlılıklar
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat openssl
+# RUN apk add --no-cache libc6-compat openssl
+RUN apk add --no-cache libc6-compat openssl python3 make g++
 WORKDIR /app
 COPY package.json package-lock.json ./
 # Prisma dosyalarını kopyalıyoruz ki generate çalışabilsin
 COPY prisma ./prisma/ 
-RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps --verbose
 
 # 2. Aşama: Build
 FROM node:20-alpine AS builder
@@ -16,6 +17,7 @@ COPY . .
 
 RUN npx prisma generate
 RUN npm run build
+
 
 # 3. Aşama: Runner
 FROM node:20-alpine AS runner

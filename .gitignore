@@ -2,6 +2,7 @@
 # Önbellek ve Bağımlılıklar
 node_modules/
 .pnp
+/.idea/
 .pnp.js
 dist/
 dist-ssr/
@@ -32,7 +33,6 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
