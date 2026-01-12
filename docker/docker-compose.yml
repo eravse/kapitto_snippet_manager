@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   kapitto_snippet-manager:
-    image: eravse/kapitto_snippet_manager:latest
+    image: eravse/kapitto_snippet_manager:amd-64-latest
     container_name: kapitto_snippet_manager
     ports:
       - "3012:3000"
