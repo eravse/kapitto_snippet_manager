@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  email         String        @unique
+  password      String
+  name          String?
+  avatar        String?
+  role          String        @default("user")
+  isActive      Boolean       @default(true) @map("is_active")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  snippets      Snippet[]
+  folders       Folder[]
+  auditLogs     AuditLog[]
+  teamMembers   TeamMember[]
+
+  @@map("users")
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  color       String?
+  icon        String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  snippets    Snippet[]
+
+  @@map("categories")
+}
+
+model Language {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  monacoId  String    @map("monaco_id")
+  icon      String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  snippets  Snippet[]
+
+  @@map("languages")
+}
+
+model Folder {
+  id        Int       @id @default(autoincrement())
+  name      String
+  parentId  Int?      @map("parent_id")
+  parent    Folder?   @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Folder[]  @relation("FolderHierarchy")
+  userId    Int?      @map("user_id")
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snippets  Snippet[]
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("folders")
+}
+
+model Tag {
+  id        Int          @id @default(autoincrement())
+  name      String       @unique
+  color     String?
+  createdAt DateTime     @default(now()) @map("created_at")
+  snippets  SnippetTag[]
+
+  @@map("tags")
+}
+
+model Snippet {
+  id          Int              @id @default(autoincrement())
+  title       String
+  description String?
+  code        String
+  languageId  Int?             @map("language_id")
+  language    Language?        @relation(fields: [languageId], references: [id], onDelete: SetNull)
+  categoryId  Int?             @map("category_id")
+  category    Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  folderId    Int?             @map("folder_id")
+  folder      Folder?          @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  userId      Int?             @map("user_id")
+  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId      Int?             @map("team_id")
+  team        Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  isPublic    Boolean          @default(false) @map("is_public")
+  isFavorite  Boolean          @default(false) @map("is_favorite")
+  viewCount   Int              @default(0) @map("view_count")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  tags        SnippetTag[]
+  versions    SnippetVersion[]
+
+  @@map("snippets")
+}
+
+model SnippetTag {
+  id        Int     @id @default(autoincrement())
+  snippetId Int     @map("snippet_id")
+  snippet   Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  tagId     Int     @map("tag_id")
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([snippetId, tagId])
+  @@map("snippet_tags")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  Int?     @map("entity_id")
+  details   String?
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
+model Team {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  members     TeamMember[]
+  snippets    Snippet[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id        Int      @id @default(autoincrement())
+  teamId    Int      @map("team_id")
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("member")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model SnippetVersion {
+  id         Int      @id @default(autoincrement())
+  snippetId  Int      @map("snippet_id")
+  snippet    Snippet  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  code       String
+  title      String
+  versionNum Int      @map("version_num")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("snippet_versions")
+}
