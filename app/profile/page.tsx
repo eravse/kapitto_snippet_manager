@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation';
 import NavLayout from '@/components/NavLayout';
 import { User, Lock, Save, Users, UserPlus, RefreshCw } from 'lucide-react';
 import UserAddModal from '@/components/UserAddModal'; // Bu bileşeni bir önceki adımda oluşturmuştuk
-import { Trash2 } from 'lucide-react';
-import Swal from 'sweetalert2';
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -59,54 +57,6 @@ export default function ProfilePage() {
     }
   };
 
-
-  const handleDeleteUser = async (userId: number, userEmail: string) => {
-    // Yönetici kendi kendini silemez
-    if (userId === user?.id) {
-      Swal.fire('Hata', 'Kendi hesabınızı silemezsiniz!', 'error');
-      return;
-    }
-
-    const result = await Swal.fire({
-      title: 'Emin misiniz?',
-      text: `${userEmail} kullanıcısı ve tüm verileri kalıcı olarak silinecek!`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Evet, sil!',
-      cancelButtonText: 'İptal',
-      background: 'var(--card-bg)',
-      color: 'var(--foreground)'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch(`/api/users/${userId}`, {
-          method: 'DELETE',
-        });
-
-        if (response.ok) {
-          Swal.fire({
-            title: 'Silindi!',
-            text: 'Kullanıcı başarıyla silindi.',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-          });
-          loadUsers(); // Listeyi yenile
-        } else {
-          const data = await response.json();
-          Swal.fire('Hata!', data.error || 'Silme işlemi başarısız.', 'error');
-        }
-      } catch (error) {
-        console.error('Delete user error:', error);
-        Swal.fire('Hata!', 'Sunucuyla bağlantı kurulamadı.', 'error');
-      }
-    }
-  };
-  
-  
   const loadUsers = async () => {
     setUsersLoading(true);
     try {
@@ -396,14 +346,6 @@ export default function ProfilePage() {
                                         }`}
                                     >
                                       {u.isActive ? 'Aktif' : 'Pasif'}
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteUser(u.id, u.email)}
-                                        disabled={u.id === user.id}
-                                        className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                        title="Kullanıcıyı Sil"
-                                    >
-                                      <Trash2 size={18} />
                                     </button>
                                   </div>
                                 </div>

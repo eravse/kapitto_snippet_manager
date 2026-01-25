@@ -8,19 +8,19 @@ datasource db {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique
-  password      String
-  name          String?
-  avatar        String?
-  role          String        @default("user")
-  isActive      Boolean       @default(true) @map("is_active")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-  snippets      Snippet[]
-  folders       Folder[]
-  auditLogs     AuditLog[]
-  teamMembers   TeamMember[]
+  id          Int          @id @default(autoincrement())
+  email       String       @unique
+  password    String
+  name        String?
+  avatar      String?
+  role        String       @default("user")
+  isActive    Boolean      @default(true) @map("is_active")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  snippets    Snippet[]
+  folders     Folder[]
+  auditLogs   AuditLog[]
+  teamMembers TeamMember[]
 
   @@map("users")
 }
@@ -111,13 +111,12 @@ model SnippetTag {
 
 model AuditLog {
   id        Int      @id @default(autoincrement())
-  userId    Int?     @map("user_id")
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action    String
-  entity    String
-  entityId  Int?     @map("entity_id")
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  action    String // DOWNLOAD, DELETE, LOGIN, UPDATE
+  snippetId Int?
   details   String?
-  ipAddress String?  @map("ip_address")
+  ipAddress String?
   userAgent String?  @map("user_agent")
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -150,13 +149,15 @@ model TeamMember {
 }
 
 model SnippetVersion {
-  id         Int      @id @default(autoincrement())
-  snippetId  Int      @map("snippet_id")
-  snippet    Snippet  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
-  code       String
-  title      String
-  versionNum Int      @map("version_num")
-  createdAt  DateTime @default(now()) @map("created_at")
+  id        Int      @id @default(autoincrement())
+  snippetId Int      @map("snippet_id")
+  snippet   Snippet  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  code      String
+  title     String
+  major     Int      @default(1)
+  minor     Int      @default(0)
+  isMajor   Boolean  @default(false) @map("is_major")
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("snippet_versions")
 }

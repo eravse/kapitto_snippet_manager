@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const versions = await prisma.snippetVersion.findMany({
       where: { snippetId: parseInt(id) },
-      orderBy: { versionNum: 'desc' },
+      orderBy: {id : 'desc' },
     });
 
     return NextResponse.json(versions);

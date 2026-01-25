@@ -9,7 +9,9 @@ dist-ssr/
 *.local
 .env
 .db
-
+.next/
+prisma/*
+.prisma
 # Mac Ds Store dosyaları
 *.DS_Store
 

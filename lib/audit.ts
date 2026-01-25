@@ -5,6 +5,7 @@ export type AuditAction =
   | 'CREATE' 
   | 'UPDATE' 
   | 'DELETE' 
+    | 'DOWNLOAD'
   | 'VIEW' 
   | 'LOGIN' 
   | 'LOGOUT' 
@@ -73,3 +74,13 @@ export async function getAuditLogs(options?: {
     skip: options?.offset || 0,
   });
 }
+
+
+export const formatDate = (dateString: string) => {
+  return new Intl.DateTimeFormat('tr-TR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(dateString));
+};

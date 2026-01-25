@@ -19,13 +19,13 @@ export default function EditSnippetPage() {
     return (
         <NavLayout>
             <div className="p-6">
-                <div className="max-w mx-auto">
+                <div className="max-w-5xl mx-auto">
                     {/* isPage={true} sayesinde modal gibi değil, normal bir panel gibi görünür */}
                     <SnippetFormModal
                         isOpen={true}
-                        isPage={true} // Bu önemli! Popup etkisini kaldırır.
-                        snippet={snippet}
                         onClose={() => router.push('/snippets')}
+                        snippet={snippet}
+                        isPage={true}
                     />
                 </div>
             </div>

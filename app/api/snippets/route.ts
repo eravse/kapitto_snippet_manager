@@ -10,6 +10,11 @@ export async function GET(request: NextRequest) {
     const categoryId = searchParams.get('categoryId');
     const search = searchParams.get('search');
 
+    // Frontend'deki pagination desteği için:
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
+
     let where: any = {};
 
     if (folderId) {
@@ -22,11 +27,14 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { title: { contains: search } },
-        { description: { contains: search } },
-        { code: { contains: search } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { code: { contains: search, mode: 'insensitive' } },
       ];
     }
+
+    // Toplam kayıt sayısını al (Frontend'deki totalPages hesabı için)
+    const totalCount = await prisma.snippet.count({ where });
 
     const snippets = await prisma.snippet.findMany({
       where,
@@ -34,6 +42,12 @@ export async function GET(request: NextRequest) {
         language: true,
         category: true,
         folder: true,
+        // KRİTİK DÜZELTME: Versions dizisini frontend'in beklediği sırada çekiyoruz
+        versions: {
+          orderBy: {
+            id: 'desc' // En son versiyon en üstte gelsin
+          }
+        },
         user: {
           select: {
             id: true,
@@ -50,9 +64,17 @@ export async function GET(request: NextRequest) {
       orderBy: {
         createdAt: 'desc',
       },
+      skip, // Sayfalama için
+      take: limit, // Sayfalama için
     });
 
-    return NextResponse.json(snippets);
+    // Frontend'in beklediği objeyi dönüyoruz
+    return NextResponse.json({
+      snippets,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      currentPage: page
+    });
   } catch (error) {
     console.error('Snippets GET error:', error);
     return NextResponse.json({ error: 'Failed to fetch snippets' }, { status: 500 });
@@ -62,7 +84,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -74,63 +96,61 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title and code are required' }, { status: 400 });
     }
 
-    const snippet = await prisma.snippet.create({
-      data: {
-        title,
-        description,
-        code,
-        languageId,
-        categoryId,
-        folderId,
-        teamId,
-        userId: session.id,
-        isPublic: isPublic ?? false,
-        isFavorite: isFavorite ?? false,
-        tags: tagIds && tagIds.length > 0
-          ? {
-              create: tagIds.map((tagId: number) => ({
-                tagId,
-              })),
-            }
-          : undefined,
-      },
-      include: {
-        language: true,
-        category: true,
-        folder: true,
-        team: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+    // Transaction kullanarak hem snippet hem versiyonu atomik olarak oluşturuyoruz
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Snippet'ı oluştur
+      const snippet = await tx.snippet.create({
+        data: {
+          title,
+          description,
+          code,
+          languageId,
+          categoryId,
+          folderId,
+          teamId,
+          userId: session.id,
+          isPublic: isPublic ?? false,
+          isFavorite: isFavorite ?? false,
+          tags: tagIds && tagIds.length > 0
+              ? {
+                create: tagIds.map((tagId: number) => ({
+                  tagId,
+                })),
+              }
+              : undefined,
         },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
+        include: {
+          language: true,
+          category: true,
+          folder: true,
+          versions: true, // Frontend için boş versiyon listesi yerine yeni oluşanı görecek
+        }
+      });
+
+      // 2. İlk Versiyonu Oluştur
+      await tx.snippetVersion.create({
+        data: {
+          snippetId: snippet.id,
+          code: code,
+          title: title,
+          major: 1,
+          minor: 0,
+          isMajor: true // İlk versiyon olduğu için true olması daha mantıklı olabilir
+        }
+      });
+
+      return snippet;
     });
 
-    await prisma.snippetVersion.create({
-      data: {
-        snippetId: snippet.id,
-        code: snippet.code,
-        title: snippet.title,
-        versionNum: 1,
-      },
-    });
-
+    // 3. Loglama
     await createAuditLog({
       action: 'CREATE',
       entity: 'snippet',
-      entityId: snippet.id,
-      details: `Snippet oluşturuldu: ${title}`,
+      entityId: result.id,
+      details: `Snippet oluşturuldu: ${title} (v1.0 kaydedildi)`,
     });
 
-    return NextResponse.json(snippet, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error('Snippets POST error:', error);
     return NextResponse.json({ error: 'Failed to create snippet' }, { status: 500 });
