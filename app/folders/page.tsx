@@ -1,293 +1,262 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import NavLayout from '@/components/NavLayout';
-import EmojiPicker from '@/components/EmojiPicker';
-import { Plus, Edit, Trash2, FolderOpen } from 'lucide-react';
+import SnippetFormModal from '@/components/SnippetFormModal';
+import { Plus, Edit, Trash2, FolderOpen, FileText, ChevronRight, LayoutGrid } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function FoldersPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+
   const [folders, setFolders] = useState<any[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<any>(null);
+  const [snippets, setSnippets] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingFolder, setEditingFolder] = useState<any>(null);
-  const [formData, setFormData] = useState({ name: '', description: '', color: '#3b82f6', icon: '📁' });
-  const [formLoading, setFormLoading] = useState(false);
+  const [editingSnippet, setEditingSnippet] = useState<any>(null);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
-
-  useEffect(() => {
-    if (user) {
-      loadFolders();
-    }
-  }, [user]);
-
-  const loadFolders = async () => {
+  // --- VERİ YÜKLEME ---
+  const loadFolders = useCallback(async () => {
     try {
       const response = await fetch('/api/folders');
       const data = await response.json();
-      setFolders(data);
-    } catch (error) {
-      console.error('Load folders error:', error);
-    }
-  };
+      const folderList = Array.isArray(data) ? data : (data.folders || []);
+      setFolders(folderList);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormLoading(true);
-
-    try {
-      const url = editingFolder ? `/api/folders/${editingFolder.id}` : '/api/folders';
-      const method = editingFolder ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setIsModalOpen(false);
-        setEditingFolder(null);
-        setFormData({ name: '', description: '', color: '#3b82f6', icon: '📁' });
-        loadFolders();
-
-        Swal.fire({
-          icon: 'success',
-          title: editingFolder ? 'Klasör Güncellendi' : 'Klasör Oluşturuldu',
-          text: 'Değişiklikler başarıyla kaydedildi.',
-          timer: 1500,
-          showConfirmButton: false,
-          background: 'var(--card-bg)',
-          color: 'var(--foreground)'
-        });
+      if (folderList.length > 0 && !selectedFolder) {
+        setSelectedFolder(folderList[0]);
       }
     } catch (error) {
-      console.error('Submit error:', error);
-      Swal.fire('Hata!', 'İşlem sırasında bir sorun oluştu.', 'error');
-    } finally {
-      setFormLoading(false);
+      console.error('Folders load error:', error);
+    }
+  }, [selectedFolder]);
+
+  const loadSnippets = useCallback(async (folderId: number) => {
+    if (!folderId) return;
+    try {
+      const response = await fetch(`/api/snippets?limit=50&folderId=${folderId}`);
+      const data = await response.json();
+      let cleanSnippets = data?.snippets || (Array.isArray(data) ? data : []);
+      setSnippets(cleanSnippets);
+    } catch (error) {
+      setSnippets([]);
+    }
+  }, []);
+
+  useEffect(() => { if (user) loadFolders(); }, [user, loadFolders]);
+  useEffect(() => { if (selectedFolder?.id) loadSnippets(selectedFolder.id); }, [selectedFolder, loadSnippets]);
+
+  // --- KLASÖR İŞLEMLERİ ---
+  const handleAddFolder = async () => {
+    const { value: folderName } = await Swal.fire({
+      title: 'Yeni Klasör Oluştur',
+      input: 'text',
+      inputLabel: 'Klasör Adı',
+      inputPlaceholder: 'Örn: React Components',
+      showCancelButton: true,
+      confirmButtonText: 'Oluştur',
+      cancelButtonText: 'İptal',
+      inputValidator: (value) => {
+        if (!value) return 'Bir isim girmelisiniz!';
+      }
+    });
+
+    if (folderName) {
+      try {
+        const response = await fetch('/api/folders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: folderName, icon: '📁', color: '#3b82f6' })
+        });
+        if (response.ok) {
+          loadFolders();
+          Swal.fire({ icon: 'success', title: 'Klasör Oluşturuldu', timer: 1000, showConfirmButton: false });
+        }
+      } catch (error) {
+        Swal.fire('Hata', 'Klasör oluşturulamadı', 'error');
+      }
     }
   };
 
-  const handleEdit = (folder: any) => {
-    setEditingFolder(folder);
-    setFormData({
-      name: folder.name,
-      description: folder.description || '',
-      color: folder.color || '#3b82f6',
-      icon: folder.icon || '📁',
-    });
-    setIsModalOpen(true);
-  };
+  const handleDeleteFolder = async (e: React.MouseEvent, folder: any) => {
+    e.stopPropagation(); // Klasörün seçilmesini engelle
 
-  const handleDelete = async (id: number) => {
+    // Önce klasörün içinde snippet var mı kontrol et (Frontend koruması)
+    // Not: API tarafında da bu kontrolü yapman güvenli olur.
+    if (folder.snippets && folder.snippets.length > 0) {
+      return Swal.fire({
+        title: 'Hata!',
+        text: 'Bu klasörün içinde snippetlar olduğu için silemezsiniz. Önce snippetları silin veya taşıyın.',
+        icon: 'error'
+      });
+    }
+
     const result = await Swal.fire({
-      title: 'Klasörü silmek istediğinize emin misiniz?',
-      text: "Bu klasörü sildiğinizde içindeki snippet'ler klasörsüz kalacaktır.",
+      title: `"${folder.name}" silinsin mi?`,
+      text: "Bu işlem geri alınamaz.",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#3b82f6',
-      cancelButtonColor: '#ef4444',
-      confirmButtonText: 'Evet, sil!',
-      cancelButtonText: 'İptal',
-      background: 'var(--card-bg)',
-      color: 'var(--foreground)'
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Evet, Sil',
+      cancelButtonText: 'Vazgeç'
     });
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`/api/folders/${id}`, {
-          method: 'DELETE',
-        });
-
+        const response = await fetch(`/api/folders/${folder.id}`, { method: 'DELETE' });
         if (response.ok) {
-          await Swal.fire({
-            title: 'Silindi!',
-            text: 'Klasör başarıyla kaldırıldı.',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false,
-            background: 'var(--card-bg)',
-            color: 'var(--foreground)'
-          });
+          if (selectedFolder?.id === folder.id) setSelectedFolder(null);
           loadFolders();
+          Swal.fire({ icon: 'success', title: 'Silindi', timer: 1000, showConfirmButton: false });
         } else {
-          Swal.fire('Hata!', 'Klasör silinemedi.', 'error');
+          // Backend'den gelen "içinde snippet var" hatasını yakala
+          const errorData = await response.json();
+          Swal.fire('Hata', errorData.error || 'Klasör silinemedi', 'error');
         }
       } catch (error) {
-        console.error('Delete error:', error);
-        Swal.fire('Hata!', 'Bağlantı hatası oluştu.', 'error');
+        Swal.fire('Hata', 'İşlem sırasında bir hata oluştu', 'error');
       }
     }
   };
 
-  if (loading || !user) {
-    return null;
-  }
+  // --- SNIPPET İŞLEMLERİ ---
+  const handleOpenModal = (snippet: any = null) => {
+    setEditingSnippet(snippet);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = (refresh: boolean = false) => {
+    setIsModalOpen(false);
+    setEditingSnippet(null);
+    if (refresh && selectedFolder?.id) loadSnippets(selectedFolder.id);
+  };
+
+  const handleDeleteSnippet = async (id: number) => {
+    const result = await Swal.fire({
+      title: 'Snippet silinsin mi?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Sil'
+    });
+    if (result.isConfirmed) {
+      await fetch(`/api/snippets/${id}`, { method: 'DELETE' });
+      loadSnippets(selectedFolder.id);
+    }
+  };
+
+  if (loading || !user) return null;
 
   return (
       <NavLayout>
-        <div className="p-6">
-          <div className="max-w mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <FolderOpen className="text-blue-500" />
-                Klasör Yönetimi
-              </h1>
+        <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[var(--background)]">
+
+          {/* SOL PANEL (KLASÖRLER) */}
+          <aside className="w-72 border-r border-[var(--border-color)] bg-[var(--card-bg)] flex flex-col">
+            <div className="p-4 border-b border-[var(--border-color)] flex items-center justify-between">
+              <h2 className="font-bold flex items-center gap-2">
+                <FolderOpen size={18} className="text-blue-500" /> Klasörler
+              </h2>
               <button
-                  onClick={() => {
-                    setEditingFolder(null);
-                    setFormData({ name: '', description: '', color: '#3b82f6', icon: '📁' });
-                    setIsModalOpen(true);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                  onClick={handleAddFolder}
+                  className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 rounded-lg transition-colors"
               >
-                <Plus size={20} />
-                Yeni Klasör
+                <Plus size={18} />
               </button>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {folders.map((folder) => (
+            <div className="flex-1 overflow-y-auto p-2">
+              {folders.map(f => (
                   <div
-                      key={folder.id}
-                      className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6 hover:shadow-lg transition-shadow"
+                      key={f.id}
+                      onClick={() => setSelectedFolder(f)}
+                      className={`group p-3 mb-1 rounded-lg cursor-pointer flex items-center justify-between transition-all ${selectedFolder?.id === f.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl">{folder.icon || '📁'}</span>
-                        <div>
-                          <h3 className="font-bold text-lg">{folder.name}</h3>
-                          {folder.description && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {folder.description}
-                              </p>
-                          )}
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-3 truncate">
+                      <span className="text-xl shrink-0">{String(f.icon || '📁')}</span>
+                      <span className="truncate font-medium text-sm">{String(f.name || 'Adsız')}</span>
                     </div>
-
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-color)]">
-                      <div className="flex items-center gap-2">
-                        <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: folder.color }}
-                        />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {folder._count?.snippets || 0} snippet
-                    </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => handleEdit(folder)}
-                            className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 rounded transition-colors"
-                            title="Düzenle"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(folder.id)}
-                            className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded transition-colors"
-                            title="Sil"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
+                    <button
+                        onClick={(e) => handleDeleteFolder(e, f)}
+                        className="p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
               ))}
             </div>
+          </aside>
 
-            {folders.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">Henüz klasör bulunmuyor</p>
+          {/* SAĞ PANEL (SNIPPETS) */}
+          <main className="flex-1 flex flex-col overflow-hidden">
+            {selectedFolder ? (
+                <>
+                  <div className="p-4 border-b border-[var(--border-color)] bg-[var(--card-bg)] flex justify-between items-center">
+                    <div className="flex items-center gap-2 text-sm">
+                      <LayoutGrid size={16} className="text-gray-400"/>
+                      <ChevronRight size={14} className="text-gray-400"/>
+                      <span className="font-bold text-[var(--foreground)]">{String(selectedFolder.name)}</span>
+                    </div>
+                    <button
+                        onClick={() => handleOpenModal()}
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+                    >
+                      <Plus size={16}/> Yeni Snippet
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                      {snippets.map((s) => (
+                          <div key={s.id} className="relative group">
+                            <div
+                                onClick={() => handleOpenModal(s)}
+                                className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl p-4 flex flex-col items-center cursor-pointer hover:border-blue-500 hover:shadow-lg transition-all"
+                            >
+                              <div className="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-center mb-3 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 transition-colors">
+                                <FileText size={24} className="text-gray-400 group-hover:text-blue-500" />
+                              </div>
+                              <span className="text-sm font-bold truncate w-full text-center">
+                          {String(s.title || s.name || 'Adsız')}
+                        </span>
+                              <span className="text-[10px] mt-2 text-blue-500 font-bold uppercase tracking-wider">
+                          {String(s.language || 'text')}
+                        </span>
+                            </div>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteSnippet(s.id); }}
+                                className="absolute -top-1 -right-1 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 hover:scale-110 transition-all shadow-lg"
+                            >
+                              <Trash2 size={12}/>
+                            </button>
+                          </div>
+                      ))}
+
+                      <div onClick={() => handleOpenModal()} className="border-2 border-dashed border-[var(--border-color)] rounded-2xl p-4 flex flex-col items-center justify-center text-gray-400 hover:border-blue-500 hover:text-blue-500 cursor-pointer min-h-[140px] bg-[var(--card-bg)]">
+                        <Plus size={24}/>
+                        <span className="text-xs font-bold mt-2">Yeni Snippet</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+            ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                  <FolderOpen size={48} className="opacity-10 mb-2" />
+                  <p>Lütfen bir klasör seçin</p>
                 </div>
             )}
-          </div>
+          </main>
         </div>
 
-        {isModalOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-[var(--card-bg)] rounded-lg shadow-xl max-w-md w-full">
-                <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
-                  <h2 className="text-xl font-bold">
-                    {editingFolder ? 'Klasörü Düzenle' : 'Yeni Klasör'}
-                  </h2>
-                  <button onClick={() => setIsModalOpen(false)} className="text-2xl font-light hover:text-red-500 transition-colors">
-                    ×
-                  </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Klasör Adı *</label>
-                    <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Açıklama</label>
-                    <textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        rows={2}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Renk</label>
-                      <input
-                          type="color"
-                          value={formData.color}
-                          onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                          className="w-full h-10 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg cursor-pointer"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">İkon (Emoji)</label>
-                      <EmojiPicker
-                          selectedEmoji={formData.icon}
-                          onSelect={(emoji) => setFormData({ ...formData, icon: emoji })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 justify-end pt-4 border-t border-[var(--border-color)]">
-                    <button
-                        type="button"
-                        onClick={() => setIsModalOpen(false)}
-                        className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      İptal
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={formLoading}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      {formLoading ? 'Kaydediliyor...' : editingFolder ? 'Güncelle' : 'Oluştur'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-        )}
+        <SnippetFormModal
+            isOpen={isModalOpen}
+            isPage={false}
+            onClose={() => handleModalClose(true)}
+            snippet={editingSnippet}
+          //  folderId={selectedFolder?.id}
+        />
       </NavLayout>
   );
 }

@@ -45,15 +45,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const snippetId = parseInt(id);
+
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const existingSnippet = await prisma.snippet.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: snippetId },
+      include: { versions: { orderBy: { id: 'desc' }, take: 1 } } // Son versiyonu hemen çekiyoruz
     });
 
     if (!existingSnippet) {
@@ -67,82 +70,82 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const { title, description, code, languageId, categoryId, folderId, teamId, tagIds, isPublic, isFavorite } = body;
 
+    // Değişiklik kontrolü
     const codeChanged = existingSnippet.code !== code || existingSnippet.title !== title;
 
-    await prisma.snippetTag.deleteMany({
-      where: { snippetId: parseInt(id) },
-    });
+    // Transaction kullanarak tüm işlemleri sağlama alıyoruz
+    const updatedSnippet = await prisma.$transaction(async (tx) => {
 
-    const snippet = await prisma.snippet.update({
-      where: { id: parseInt(id) },
-      data: {
-        title,
-        description,
-        code,
-        languageId,
-        categoryId,
-        folderId,
-        teamId,
-        isPublic,
-        isFavorite,
-        tags: tagIds && tagIds.length > 0
-          ? {
-              create: tagIds.map((tagId: number) => ({
-                tagId,
-              })),
-            }
-          : undefined,
-      },
-      include: {
-        language: true,
-        category: true,
-        folder: true,
-        team: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-    });
-
-    if (codeChanged) {
-      const lastVersion = await prisma.snippetVersion.findFirst({
-        where: { snippetId: parseInt(id) },
-        orderBy: { versionNum: 'desc' },
+      // 1. Mevcut tagleri temizle
+      await tx.snippetTag.deleteMany({
+        where: { snippetId },
       });
 
-      await prisma.snippetVersion.create({
+      // 2. Snippet'ı güncelle
+      const snippet = await tx.snippet.update({
+        where: { id: snippetId },
         data: {
-          snippetId: parseInt(id),
-          code: snippet.code,
-          title: snippet.title,
-          versionNum: (lastVersion?.versionNum || 0) + 1,
+          title,
+          description,
+          code,
+          languageId,
+          categoryId,
+          folderId,
+          teamId,
+          isPublic: isPublic ?? existingSnippet.isPublic,
+          isFavorite: isFavorite ?? existingSnippet.isFavorite,
+          tags: tagIds && tagIds.length > 0
+              ? {
+                create: tagIds.map((tagId: number) => ({
+                  tagId,
+                })),
+              }
+              : undefined,
+        },
+        include: {
+          language: true,
+          category: true,
+          folder: true,
+          versions: true,
+          user: { select: { id: true, name: true, email: true } },
+          tags: { include: { tag: true } },
         },
       });
-    }
 
+      // 3. Kod veya Başlık değiştiyse yeni versiyon oluştur (v1.1, v1.2 mantığı)
+      if (codeChanged) {
+        const lastVersion = existingSnippet.versions[0];
+
+        await tx.snippetVersion.create({
+          data: {
+            snippetId: snippetId,
+            code: code,
+            title: title,
+            major: lastVersion?.major || 1,
+            minor: (lastVersion?.minor || 0) + 1, // Her güncelleme bir minor versiyon artırır
+            isMajor: false
+          },
+        });
+      }
+
+      return snippet;
+    });
+
+    // 4. Loglama
     await createAuditLog({
       action: 'UPDATE',
       entity: 'snippet',
-      entityId: snippet.id,
-      details: `Snippet güncellendi: ${title}`,
+      entityId: updatedSnippet.id,
+      details: `Snippet güncellendi: ${title} ${codeChanged ? '(Yeni versiyon oluşturuldu)' : ''}`,
     });
 
-    return NextResponse.json(snippet);
+    return NextResponse.json(updatedSnippet);
   } catch (error) {
-    console.error('Snippet PUT error:', error);
+    // Hatayı konsola detaylı yazdırıyoruz ki Prisma hatasını görebilelim
+    console.error('Snippet PUT error details:', error);
     return NextResponse.json({ error: 'Failed to update snippet' }, { status: 500 });
   }
 }
-
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
