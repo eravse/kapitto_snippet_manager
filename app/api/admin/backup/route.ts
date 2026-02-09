@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth'; // Senin kendi auth dosyan
 import fs from 'fs';
 import path from 'path';
+import { createAuditLog } from '@/lib/audit';
 
 export async function GET() {
     try {
@@ -30,6 +31,13 @@ export async function GET() {
 
         // 5. Dosyayı oku
         const fileBuffer = fs.readFileSync(dbPath);
+
+        await createAuditLog({
+            action: 'DOWNLOAD',
+            entity: 'system',
+            entityId: 0,
+            details: 'Veritabanı yedeği indirildi.',
+        });
 
         // 6. Dosyayı indirilebilir olarak döndür
         return new NextResponse(fileBuffer, {

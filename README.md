@@ -1,92 +1,95 @@
-# Snippet Manager
+# Kapitto Snippet Manager v2.1 (Pro)
 
-Modern Code Snippet Manager uygulaması - SQLite veritabanı ile yerel çalışan, Directus yerine SQLite kullanan versiyon.
+Modern, güvenli ve kurumsal odaklı Kod Parçacığı Yönetim Sistemi.
+Tamamen yerel çalışır, verilerinizi asla dışarı sızdırmaz.
 
-## 🎯 Özellikler
+![Kapitto Banner](images/banner.png)
 
-- ✅ **SQLite Veritabanı**: Yerel, dosya tabanlı veritabanı
-- ✅ **Prisma ORM**: Tip-güvenli veritabanı işlemleri
-- ✅ **Next.js 15**: Modern React framework (güvenlik güncellemeli)
-- ✅ **React 19**: En son React sürümü
-- ✅ **Monaco Editor**: VS Code editörü ile syntax highlighting
-- ✅ **Dark/Light Mode**: Sistem tercihi ile senkronize tema
-- ✅ **Responsive Design**: Mobil uyumlu arayüz
-- ✅ **3-Panel Layout**: Sidebar, Liste, Detay paneli
+## 🚀 v2.1 Yenilikleri & Pro Özellikler
 
-## 📋 Gereksinimler
+Kapitto v2.1, profesyonel geliştiriciler ve ekipler için tasarlanmış güçlü özelliklerle gelir:
 
-- Node.js 18+ veya 20+
-- npm veya yarn
+- **Source Control Entegrasyonu (Pro)**: Kod parçalarınızı doğrudan **GitHub (Gist/Repo)** veya **Gitea**'ya gönderin.
+- **Lisans Yönetimi (Pro)**: Gelişmiş özelliklerin kilidini açan esnek lisanslama sistemi.
+- **Güvenlik Kalkanı (Pro)**: IP tabanlı erişim kontrolü (Whitelist/Blacklist) ve DoS koruması.
+- **Gelişmiş Admin Paneli**: Onay süreçleri için split-view arayüz ve detaylı denetim kayıtları (Audit Logs).
+- **Veri Taşıma Araçları**: Eski sistemlerden (v1.x) kolay geçiş sihirbazı.
+
+> **Detaylı Dokümantasyon:**
+> - [Modül Rehberi](docs/modules.md) - Sistem modülleri hakkında bilgi.
+> - [Pro Özellikler](docs/pro-features.md) - Lisanslama ve entegrasyon detayları.
+> - [Sürüm Geçmişi](docs/changelog.md) - Değişiklik günlüğü.
+
+## 📸 Galeri
+
+Uygulama arayüzünden görünümler:
+
+| Ana Panel                                  | Pro Ayarlar                         |
+|--------------------------------------------|-------------------------------------|
+| ![Dashboard](images/1-dashboard-light.png) | ![Settings](images/11-settings.png) |
+
+| Snippet Detay                    | Admin Onay                                  |
+|----------------------------------|---------------------------------------------|
+| ![Detail](images/4-snippets.png) | ![Admin](images/8-snippet-approve.png) |
+
+## 🎯 Temel Özellikler
+
+- ✅ **SQLite Veritabanı**: Hızlı, hafif ve tamamen yerel depolama.
+- ✅ **Prisma ORM**: Tip-güvenli ve hatasız veritabanı etkileşimi.
+- ✅ **Next.js 15 & React 19**: En güncel teknoloji yığını ile yüksek performans.
+- ✅ **Monaco Editor**: VS Code kalitesinde kod düzenleme deneyimi.
+- ✅ **Dark/Light Mode**: Göz yormayan tema seçenekleri.
+- ✅ **Responsive**: Her cihazda kusursuz görünüm.
 
 ## 🚀 Kurulum
 
-### 1. Bağımlılıkları Yükle
+### 1. Hazırlık
+Gereksinimler: Node.js 18+ veya 20+
 
-**NPM kullanıyorsanız ve cache hatası alırsanız:**
 ```bash
-sudo chown -R 501:20 "/Users/[your_user_name]/.npm"
+# Bağımlılıkları yükle
 npm install
-```
-
-**veya Yarn kullanın:**
-```bash
+# veya
 yarn install
 ```
 
-### 2. Veritabanını Oluştur
+### 2. Veritabanı Kurulumu
 
 ```bash
-# Prisma client'ı oluştur
-npm run db:generate
-
-# Veritabanı şemasını uygula
+# Veritabanı oluştur ve şemayı uygula
 npm run db:push
 
-# Örnek verileri yükle
+# Örnek verileri yükle (Admin kullanıcısı ve temel ayarlar)
 npm run db:seed
 ```
 
-### 3. Uygulamayı Başlat
+> **Not:** `admin@kapitto.com` / `1q2w3e` ile giriş yapabilirsiniz.
+
+### 3. Başlatma
 
 ```bash
 npm run dev
+# http://localhost:3000 adresine gidin
 ```
 
-Uygulama `http://localhost:3000` adresinde çalışacak.
+## 📊 Veritabanı & Modüller
 
-## 📊 Veritabanı Yapısı
+Uygulama aşağıdaki ana veri yapıları üzerine kuruludur:
 
-### Koleksiyonlar
+- **Snippets**: Kod parçacıkları, versiyonlar ve metadata.
+- **Users & Auth**: Rol tabanlı (Admin/User) kullanıcı yönetimi.
+- **Folders**: Sınırsız derinlikte hiyerarşik klasörleme.
+- **Integrations**: GitHub/Gitea token yönetimi (Şifreli saklanır).
 
-- **snippets**: Kod parçaları
-- **folders**: Klasör yapısı (hiyerarşik)
-- **tags**: Etiketler
-- **languages**: Programlama dilleri
-- **snippet_tags**: Snippet-Tag ilişkisi
+Daha fazlası için [Modül Dokümantasyonu](docs/modules.md)'na göz atın.
 
-### Seed Data
-
-Seed scripti otomatik olarak şunları oluşturur:
-- 20 programlama dili (JavaScript, TypeScript, Python, vb.)
-- 10 popüler etiket
-- 6 klasör (Frontend, Backend ve alt klasörler)
-- 4 örnek snippet
-
-## 🛠️ Komutlar
+## 🛠️ Geliştirici Komutları
 
 ```bash
-# Geliştirme modu
-npm run dev
-
-# Production build
-npm run build
-npm start
-
-# Veritabanı işlemleri
-npm run db:generate    # Prisma client oluştur
-npm run db:push        # Şemayı veritabanına uygula
-npm run db:seed        # Örnek verileri yükle
-npm run db:studio      # Prisma Studio'yu aç (veritabanı yönetimi)
+npm run db:studio      # Veritabanı GUI (Prisma Studio)
+npm run db:generate    # Prisma Client'ı yeniden oluştur
+npm run build          # Production build al
+npm start              # Production modunda başlat
 ```
 
 ## 📁 Proje Yapısı
@@ -94,72 +97,17 @@ npm run db:studio      # Prisma Studio'yu aç (veritabanı yönetimi)
 ```
 SnippetManager/
 ├── app/
-│   ├── api/                    # API routes
-│   │   ├── snippets/          # Snippet CRUD
-│   │   ├── folders/           # Klasör işlemleri
-│   │   ├── tags/              # Etiket işlemleri
-│   │   └── languages/         # Dil listesi
-│   ├── dashboard/             # Ana sayfa
-│   ├── layout.tsx             # Root layout
-│   └── globals.css            # Global stiller
-├── components/
-│   ├── FolderTree.tsx         # Klasör ağacı
-│   ├── SearchBar.tsx          # Arama çubuğu
-│   ├── SnippetCard.tsx        # Snippet kartı
-│   └── SnippetDetail.tsx      # Detay paneli
-├── contexts/
-│   └── ThemeContext.tsx       # Dark/Light mode
-├── lib/
-│   └── prisma.ts              # Prisma client
-├── prisma/
-│   ├── schema.prisma          # Veritabanı şeması
-│   ├── seed.ts                # Seed script
-│   └── dev.db                 # SQLite veritabanı (otomatik oluşur)
-└── package.json
+│   ├── api/             # Backend API endpointleri
+│   ├── dashboard/       # Kullanıcı paneli
+│   ├── admin/           # Yönetici paneli ve onay süreçleri
+│   └── profile/         # Ayarlar ve Entegrasyonlar
+├── components/          # React bileşenleri (UI Kit)
+├── docs/                # Sistem dokümantasyonu
+├── images/              # Galeri ve görsel varlıklar
+├── lib/                 # Yardımcı fonksiyonlar (Auth, License, DB)
+└── prisma/              # Veritabanı şeması ve seed
 ```
-
-## 🎨 Kullanım
-
-### Snippet Görüntüleme
-1. Sol kenar çubuğundan klasör seç
-2. Ortadaki listeden snippet seç
-3. Sağ panelde kod görüntülenir
-
-### Arama
-- Başlık, açıklama ve kod içeriğinde arama yapılır
-- Gerçek zamanlı filtreleme
-
-### Tema Değiştirme
-- Sağ üst köşedeki güneş/ay ikonuna tıkla
-- Tercih otomatik kaydedilir
-
-## 🔧 API Endpoints
-
-### Snippets
-- `GET /api/snippets` - Tüm snippet'leri listele
-- `GET /api/snippets?folderId=1` - Klasöre göre filtrele
-- `GET /api/snippets?search=react` - Arama
-- `GET /api/snippets/[id]` - Tekil snippet
-- `POST /api/snippets` - Yeni snippet
-- `PUT /api/snippets/[id]` - Snippet güncelle
-- `DELETE /api/snippets/[id]` - Snippet sil
-
-### Folders
-- `GET /api/folders` - Tüm klasörler
-- `POST /api/folders` - Yeni klasör
-
-### Tags
-- `GET /api/tags` - Tüm etiketler
-
-### Languages
-- `GET /api/languages` - Tüm diller
-
-## 💡 İpuçları
-
-1. **Prisma Studio**: Veritabanını görsel olarak yönetmek için `npm run db:studio` çalıştırın
-2. **Veritabanı Sıfırlama**: `prisma/dev.db` dosyasını silin ve `npm run db:push && npm run db:seed` çalıştırın
-3. **Yeni Dil Eklemek**: `prisma/seed.ts` dosyasını düzenleyin veya Prisma Studio kullanın
 
 ## 📝 Lisans
 
-MIT
+MIT License. Kurumsal kullanım ve destek için iletişime geçin.

@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
+import { checkProLicense } from '@/lib/license';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const isPro = await checkProLicense();
+    if (!isPro) {
+      return NextResponse.json({ error: 'Pro feature required' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -50,9 +56,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { id } = await params;
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const isPro = await checkProLicense();
+    if (!isPro) {
+      return NextResponse.json({ error: 'Pro feature required' }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -77,5 +88,48 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   } catch (error) {
     console.error('Team member DELETE error:', error);
     return NextResponse.json({ error: 'Failed to remove team member' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  try {
+    const session = await getSession();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const isPro = await checkProLicense();
+    if (!isPro) {
+      return NextResponse.json({ error: 'Pro feature required' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { memberId, role } = body;
+
+    if (!memberId || !role) {
+      return NextResponse.json({ error: 'Member ID and role are required' }, { status: 400 });
+    }
+
+    const updatedMember = await prisma.teamMember.update({
+      where: { id: parseInt(memberId) },
+      data: { role },
+      include: {
+        user: { select: { email: true } }
+      }
+    });
+
+    await createAuditLog({
+      action: 'UPDATE',
+      entity: 'team',
+      entityId: parseInt(id),
+      details: `Takım üyesi rolü güncellendi: ${updatedMember.user.email} -> ${role}`,
+    });
+
+    return NextResponse.json(updatedMember);
+  } catch (error) {
+    console.error('Team member PATCH error:', error);
+    return NextResponse.json({ error: 'Failed to update team member role' }, { status: 500 });
   }
 }

@@ -2,13 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
+import { checkProLicense } from '@/lib/license';
 
 export async function GET() {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const isPro = await checkProLicense();
+    if (!isPro) {
+      return NextResponse.json({ error: 'Pro feature required' }, { status: 403 });
     }
 
     const teams = await prisma.team.findMany({
@@ -46,9 +52,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const isPro = await checkProLicense();
+    if (!isPro) {
+      return NextResponse.json({ error: 'Pro feature required' }, { status: 403 });
     }
 
     const body = await request.json();

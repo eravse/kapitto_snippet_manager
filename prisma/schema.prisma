@@ -14,9 +14,17 @@ model User {
   name        String?
   avatar      String?
   role        String       @default("user")
+  githubUsername String?   @map("github_username")
   isActive    Boolean      @default(true) @map("is_active")
   createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  twoFactorEnabled Boolean      @default(false) @map("two_factor_enabled")
+  twoFactorSecret  String?      @map("two_factor_secret")
+  allowedIPs       String?      @map("allowed_ips")
+  blockedIPs       String?      @map("blocked_ips")
+  githubAccessToken String?     @map("github_access_token")
+  giteaAccessToken  String?     @map("gitea_access_token")
+  giteaBaseUrl      String?     @map("gitea_base_url")
   snippets    Snippet[]
   folders     Folder[]
   auditLogs   AuditLog[]
@@ -89,7 +97,10 @@ model Snippet {
   team        Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
   isPublic    Boolean          @default(false) @map("is_public")
   isFavorite  Boolean          @default(false) @map("is_favorite")
+  isExecutable Boolean         @default(false) @map("is_executable")
+  status      String           @default("APPROVED")
   viewCount   Int              @default(0) @map("view_count")
+  externalUrl String?          @map("external_url")
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
   tags        SnippetTag[]
@@ -115,12 +126,28 @@ model AuditLog {
   user      User     @relation(fields: [userId], references: [id])
   action    String // DOWNLOAD, DELETE, LOGIN, UPDATE
   snippetId Int?
+  entity    String
+  entityId  Int
+  oldValue  String?  @map("old_value")
+  newValue  String?  @map("new_value")
   details   String?
   ipAddress String?
   userAgent String?  @map("user_agent")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("audit_logs")
+}
+
+model EmailTemplate {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  subject   String
+  content   String
+  context   String   @default("SYSTEM") // USER, SNIPPET, SYSTEM
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("email_templates")
 }
 
 model Team {
@@ -160,4 +187,14 @@ model SnippetVersion {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("snippet_versions")
+}
+
+model SystemSettings {
+  id                    Int      @id @default(1)
+  rateLimitPerMinute    Int      @default(60) @map("rate_limit_per_minute")
+  ddosProtectionEnabled Boolean  @default(false) @map("ddos_protection_enabled")
+  maintenanceMode       Boolean  @default(false) @map("maintenance_mode")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
 }

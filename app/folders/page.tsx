@@ -5,7 +5,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import NavLayout from '@/components/NavLayout';
 import SnippetFormModal from '@/components/SnippetFormModal';
-import { Plus, Edit, Trash2, FolderOpen, FileText, ChevronRight, LayoutGrid } from 'lucide-react';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  FolderOpen,
+  FileText,
+  ChevronRight,
+  LayoutGrid,
+  Activity,
+  Folder,
+  Folders
+} from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function FoldersPage() {
@@ -152,6 +163,25 @@ export default function FoldersPage() {
 
   return (
       <NavLayout>
+
+        <div className="p-4 md:p-8 bg-[#f8fafc] dark:bg-[#0f172a] min-h-screen">
+          <div className="mx-auto">
+
+            {/* Header Bölümü */}
+            <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                  <div className="h-10 w-1 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
+                  <span className="p-2 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-500/30">
+                                    <Folders size={28} />
+                                </span>
+                  Dashboard
+                </h1>
+     
+              </div>
+           
+            </div>
+        
         <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[var(--background)]">
 
           {/* SOL PANEL (KLASÖRLER) */}
@@ -162,7 +192,7 @@ export default function FoldersPage() {
               </h2>
               <button
                   onClick={handleAddFolder}
-                  className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 rounded-lg transition-colors"
+                  className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 rounded-xl transition-colors"
               >
                 <Plus size={18} />
               </button>
@@ -172,7 +202,7 @@ export default function FoldersPage() {
                   <div
                       key={f.id}
                       onClick={() => setSelectedFolder(f)}
-                      className={`group p-3 mb-1 rounded-lg cursor-pointer flex items-center justify-between transition-all ${selectedFolder?.id === f.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                      className={`group p-3 mb-1 rounded-xl cursor-pointer flex items-center justify-between transition-all ${selectedFolder?.id === f.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                   >
                     <div className="flex items-center gap-3 truncate">
                       <span className="text-xl shrink-0">{String(f.icon || '📁')}</span>
@@ -201,7 +231,7 @@ export default function FoldersPage() {
                     </div>
                     <button
                         onClick={() => handleOpenModal()}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all active:scale-95"
                     >
                       <Plus size={16}/> Yeni Snippet
                     </button>
@@ -213,7 +243,7 @@ export default function FoldersPage() {
                           <div key={s.id} className="relative group">
                             <div
                                 onClick={() => handleOpenModal(s)}
-                                className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl p-4 flex flex-col items-center cursor-pointer hover:border-blue-500 hover:shadow-lg transition-all"
+                                className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-4 flex flex-col items-center cursor-pointer hover:border-blue-500 hover:shadow-lg transition-all"
                             >
                               <div className="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-center mb-3 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 transition-colors">
                                 <FileText size={24} className="text-gray-400 group-hover:text-blue-500" />
@@ -234,7 +264,7 @@ export default function FoldersPage() {
                           </div>
                       ))}
 
-                      <div onClick={() => handleOpenModal()} className="border-2 border-dashed border-[var(--border-color)] rounded-2xl p-4 flex flex-col items-center justify-center text-gray-400 hover:border-blue-500 hover:text-blue-500 cursor-pointer min-h-[140px] bg-[var(--card-bg)]">
+                      <div onClick={() => handleOpenModal()} className="border-2 border-dashed border-[var(--border-color)] rounded-xl p-4 flex flex-col items-center justify-center text-gray-400 hover:border-blue-500 hover:text-blue-500 cursor-pointer min-h-[140px] bg-[var(--card-bg)]">
                         <Plus size={24}/>
                         <span className="text-xs font-bold mt-2">Yeni Snippet</span>
                       </div>
@@ -256,7 +286,7 @@ export default function FoldersPage() {
             onClose={() => handleModalClose(true)}
             snippet={editingSnippet}
           //  folderId={selectedFolder?.id}
-        />
+        />  </div>  </div>
       </NavLayout>
   );
 }

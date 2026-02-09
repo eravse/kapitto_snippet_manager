@@ -21,12 +21,11 @@ RUN npm run build
 
 # 3. Aşama: Runner
 FROM node:20-alpine AS runner
-RUN apk add --no-cache openssl
 WORKDIR /app
-
 ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Gerekli klasör izinleri
+RUN apk add --no-cache openssl
 RUN mkdir -p /app/prisma/data && chown -R node:node /app
 
 COPY --from=builder --chown=node:node /app/.next ./.next
@@ -35,7 +34,6 @@ COPY --from=builder --chown=node:node /app/package.json ./package.json
 COPY --from=builder --chown=node:node /app/prisma ./prisma
 
 USER node
-
 EXPOSE 3000
 ENV PORT 3000
 

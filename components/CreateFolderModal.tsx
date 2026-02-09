@@ -45,7 +45,7 @@ export default function CreateFolderModal({ isOpen, onClose, onSuccess, parentId
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-[var(--card-bg)] rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div className="bg-[var(--card-bg)] rounded-xl shadow-xl max-w-md w-full mx-4">
         <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Folder size={20} />
@@ -75,7 +75,7 @@ export default function CreateFolderModal({ isOpen, onClose, onSuccess, parentId
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Klasör adı girin"
               required
               autoFocus
@@ -86,14 +86,14 @@ export default function CreateFolderModal({ isOpen, onClose, onSuccess, parentId
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
             >
               İptal
             </button>
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Oluşturuluyor...' : 'Oluştur'}
             </button>

@@ -45,7 +45,7 @@ export default function UserAddModal({ isOpen, onClose, onSuccess }: UserAddModa
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg shadow-xl w-full max-w-md">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl shadow-xl w-full max-w-md">
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
                     <h2 className="text-xl font-bold flex items-center gap-2">
                         <UserPlus size={20} /> Yeni Kullanıcı Ekle
@@ -65,7 +65,7 @@ export default function UserAddModal({ isOpen, onClose, onSuccess }: UserAddModa
                             required
                             value={formData.name}
                             onChange={(e) => setFormData({...formData, name: e.target.value})}
-                            className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                         />
                     </div>
 
@@ -76,7 +76,7 @@ export default function UserAddModal({ isOpen, onClose, onSuccess }: UserAddModa
                             required
                             value={formData.email}
                             onChange={(e) => setFormData({...formData, email: e.target.value})}
-                            className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                         />
                     </div>
 
@@ -88,7 +88,7 @@ export default function UserAddModal({ isOpen, onClose, onSuccess }: UserAddModa
                             minLength={6}
                             value={formData.password}
                             onChange={(e) => setFormData({...formData, password: e.target.value})}
-                            className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                         />
                     </div>
 
@@ -97,7 +97,7 @@ export default function UserAddModal({ isOpen, onClose, onSuccess }: UserAddModa
                         <select
                             value={formData.role}
                             onChange={(e) => setFormData({...formData, role: e.target.value})}
-                            className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-3 py-2 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                         >
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
@@ -109,7 +109,7 @@ export default function UserAddModal({ isOpen, onClose, onSuccess }: UserAddModa
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
+                            className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 transition-colors"
                         >
                             {loading ? 'Ekleniyor...' : 'Kullanıcıyı Oluştur'}
                         </button>

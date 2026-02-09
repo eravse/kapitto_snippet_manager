@@ -1,6 +1,6 @@
 'use client';
 
-import { Folder, ChevronRight, ChevronDown } from 'lucide-react';
+import {Folder, ChevronRight, ChevronDown, Activity} from 'lucide-react';
 import { useState } from 'react';
 import { Folder as FolderType } from '@/lib/prisma';
 
@@ -33,7 +33,7 @@ export default function FolderTree({ folders, selectedFolderId, onFolderSelect }
     return (
       <div key={folder.id}>
         <div
-          className={`flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg transition-colors ${
+          className={`flex items-center gap-2 px-3 py-2 cursor-pointer rounded-xl transition-colors ${
             isSelected
               ? 'bg-blue-500 text-white'
               : 'hover:bg-[var(--card-hover)]'
@@ -70,9 +70,10 @@ export default function FolderTree({ folders, selectedFolderId, onFolderSelect }
   };
 
   return (
+ 
     <div className="space-y-1">
       <div
-        className={`flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg transition-colors ${
+        className={`flex items-center gap-2 px-3 py-2 cursor-pointer rounded-xl transition-colors ${
           selectedFolderId === undefined
             ? 'bg-blue-500 text-white'
             : 'hover:bg-[var(--card-hover)]'
@@ -83,6 +84,7 @@ export default function FolderTree({ folders, selectedFolderId, onFolderSelect }
         <span className="text-sm font-medium">Tüm Snippet'ler</span>
       </div>
       {rootFolders.map(folder => renderFolder(folder))}
-    </div>
+    </div>      
+
   );
 }

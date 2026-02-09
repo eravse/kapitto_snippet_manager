@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { 
-  LayoutDashboard, 
-  Code2, 
-  Shield, 
-  BookOpen, 
-  LogOut, 
-  Sun, 
+import {
+  LayoutDashboard,
+  Code2,
+  Shield,
+  BookOpen,
+  LogOut,
+  Sun,
   Moon,
   Menu,
   X,
@@ -41,21 +41,21 @@ export default function NavLayout({ children }: NavLayoutProps) {
     { name: 'Kategoriler', href: '/categories', icon: BookOpen },
     { name: 'Takımlar', href: '/teams', icon: Users },
     { name: 'Audit Logs', href: '/audit-logs', icon: FileText },
+    ...(user.role === 'admin' ? [{ name: 'Snippet Onayları', href: '/admin/approvals', icon: Shield }] : []),
   ];
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <div className="flex h-screen overflow-hidden">
         <aside
-          className={`${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[var(--sidebar-bg)] border-r border-[var(--border-color)] transition-transform duration-300`}
+          className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[var(--sidebar-bg)] border-r border-[var(--border-color)] transition-transform duration-300`}
         >
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
               <h1 className="text-xl font-bold">
 
-                <img src={"https://cdn.lojiplus.com/logos/kapitto_logo_blue.png"}/>
+                <img src={"https://cdn.lojiplus.com/logos/kapitto_logo_blue.png"} />
               </h1>
               <button
                 onClick={() => setSidebarOpen(false)}
@@ -73,11 +73,10 @@ export default function NavLayout({ children }: NavLayoutProps) {
                     key={item.name}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive
                         ? 'bg-blue-500 text-white'
                         : 'hover:bg-[var(--card-hover)]'
-                    }`}
+                      }`}
                   >
                     <item.icon size={20} />
                     <span className="font-medium">{item.name}</span>
@@ -89,7 +88,7 @@ export default function NavLayout({ children }: NavLayoutProps) {
             <div className="p-4 border-t border-[var(--border-color)]">
               <button
                 onClick={() => router.push('/profile')}
-                className="w-full flex items-center gap-3 px-4 py-3 mb-2 hover:bg-[var(--card-hover)] rounded-lg transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 mb-2 hover:bg-[var(--card-hover)] rounded-xl transition-colors"
               >
                 <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
                   {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
@@ -101,14 +100,14 @@ export default function NavLayout({ children }: NavLayoutProps) {
               </button>
               <button
                 onClick={toggleTheme}
-                className="w-full flex items-center gap-3 px-4 py-2 hover:bg-[var(--card-hover)] rounded-lg transition-colors mb-2"
+                className="w-full flex items-center gap-3 px-4 py-2 hover:bg-[var(--card-hover)] rounded-xl transition-colors mb-2"
               >
                 {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                 <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
               </button>
               <button
                 onClick={() => logout()}
-                className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-colors"
               >
                 <LogOut size={20} />
                 <span>Çıkış Yap</span>

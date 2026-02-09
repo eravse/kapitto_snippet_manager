@@ -24,8 +24,7 @@ export async function GET(
 
     const versionData = await prisma.snippetVersion.findFirst({
         where: {
-            snippetId,
-            versionNum: majorNum,
+            snippetId
         },
         orderBy: { createdAt: 'desc' }
     });
@@ -34,7 +33,7 @@ export async function GET(
         return NextResponse.json({ error: "Versiyon bulunamadı" }, { status: 404 });
     }
 
-    const fileName = `${versionData.title.replace(/\s+/g, '_')}_v${versionData.versionNum}.0.txt`;
+    const fileName = `${versionData.title.replace(/\s+/g, '_')}_v${versionStr}.0.txt`;
 
     await createAuditLog({
         action: 'DOWNLOAD',

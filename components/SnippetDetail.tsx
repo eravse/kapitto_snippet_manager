@@ -60,7 +60,7 @@ export default function SnippetDetail({ snippet, onClose, onEdit, onDelete, them
           {onEdit && (
             <button
               onClick={() => onEdit(snippet)}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
               title="Düzenle"
             >
               <Edit size={18} />
@@ -69,7 +69,7 @@ export default function SnippetDetail({ snippet, onClose, onEdit, onDelete, them
           {onDelete && (
             <button
               onClick={() => onDelete(snippet)}
-              className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded-md transition-colors"
+              className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded-xl transition-colors"
               title="Sil"
             >
               <Trash2 size={18} />
@@ -77,7 +77,7 @@ export default function SnippetDetail({ snippet, onClose, onEdit, onDelete, them
           )}
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
           >
             <X size={20} />
           </button>
@@ -107,7 +107,7 @@ export default function SnippetDetail({ snippet, onClose, onEdit, onDelete, them
           <span className="text-sm font-medium">Kod</span>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors text-sm"
+            className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors text-sm"
           >
             {copied ? (
               <>
