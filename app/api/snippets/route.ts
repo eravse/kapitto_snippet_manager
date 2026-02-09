@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
+import { isExecutableCode } from '@/lib/security';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,16 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
 
+    const session = await getSession();
     let where: any = {};
+
+    if (!session || session.role !== 'admin') {
+      // Admin değilse: Sadece APPROVED olanları VEYA kendi snippetlarını görsün
+      where.OR = [
+        { status: 'APPROVED' },
+        ...(session ? [{ userId: session.id }] : []),
+      ];
+    }
 
     if (folderId) {
       where.folderId = parseInt(folderId);
@@ -96,6 +106,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title and code are required' }, { status: 400 });
     }
 
+    const isExecutable = isExecutableCode(code);
+    const isAdmin = session.role === 'admin';
+    const initialStatus = (isExecutable && !isAdmin) ? 'PENDING' : 'APPROVED';
+
     // Transaction kullanarak hem snippet hem versiyonu atomik olarak oluşturuyoruz
     const result = await prisma.$transaction(async (tx) => {
       // 1. Snippet'ı oluştur
@@ -111,13 +125,15 @@ export async function POST(request: NextRequest) {
           userId: session.id,
           isPublic: isPublic ?? false,
           isFavorite: isFavorite ?? false,
+          isExecutable,
+          status: initialStatus,
           tags: tagIds && tagIds.length > 0
-              ? {
-                create: tagIds.map((tagId: number) => ({
-                  tagId,
-                })),
-              }
-              : undefined,
+            ? {
+              create: tagIds.map((tagId: number) => ({
+                tagId,
+              })),
+            }
+            : undefined,
         },
         include: {
           language: true,

@@ -32,13 +32,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     const { name, description, color, icon } = body;
+
+    const existingCategory = await prisma.category.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!existingCategory) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    }
 
     const category = await prisma.category.update({
       where: { id: parseInt(id) },
@@ -54,6 +62,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       action: 'UPDATE',
       entity: 'category',
       entityId: category.id,
+      oldValue: existingCategory.name,
+      newValue: category.name,
       details: `Kategori güncellendi: ${name}`,
     });
 
@@ -68,9 +78,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { id } = await params;
   try {
     const session = await getSession();
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Bu işlem için yönetici yetkisi gereklidir' }, { status: 403 });
     }
 
     const category = await prisma.category.findUnique({

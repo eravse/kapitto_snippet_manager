@@ -32,6 +32,24 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Tablo içindeki dropdown'ların kesilmesini engellemek için */
+table {
+  border-collapse: separate !important; /* collapse yerine separate kullanın */
+}
+
+/* Satırın diğer satırların üzerine çıkabilmesi için */
+tr.relative:focus-within,
+tr.relative:hover {
+  z-index: 50;
+}
+
+/* Dropdown'un kapsayıcısında overflow-hidden varsa kaldırın veya şu sınıfı ekleyin */
+.overflow-visible-important {
+  overflow: visible !important;
+}
+
+
+
 @layer utilities {
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;

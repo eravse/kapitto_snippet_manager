@@ -7,13 +7,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     const { name, parentId } = body;
+
+    const existingFolder = await prisma.folder.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!existingFolder) {
+      return NextResponse.json({ error: 'Folder not found' }, { status: 404 });
+    }
 
     const folder = await prisma.folder.update({
       where: { id: parseInt(id) },
@@ -27,6 +35,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       action: 'UPDATE',
       entity: 'folder',
       entityId: folder.id,
+      oldValue: existingFolder.name,
+      newValue: folder.name,
       details: `Klasör güncellendi: ${name}`,
     });
 
@@ -41,9 +51,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { id } = await params;
   try {
     const session = await getSession();
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Bu işlem için yönetici yetkisi gereklidir' }, { status: 403 });
     }
 
     const folder = await prisma.folder.findUnique({

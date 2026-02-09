@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
+import { checkProLicense } from '@/lib/license';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const isPro = await checkProLicense();
+    if (!isPro) {
+      return NextResponse.json({ error: 'Pro feature required' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -41,9 +47,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { id } = await params;
   try {
     const session = await getSession();
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Bu işlem için yönetici yetkisi gereklidir' }, { status: 403 });
+    }
+
+    const isPro = await checkProLicense();
+    if (!isPro) {
+      return NextResponse.json({ error: 'Pro feature required' }, { status: 403 });
     }
 
     const team = await prisma.team.findUnique({

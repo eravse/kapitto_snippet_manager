@@ -64,7 +64,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors lg:hidden"
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors lg:hidden"
           >
             <Menu size={20} />
           </button>
@@ -72,14 +72,14 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors text-sm font-medium"
           >
             <Plus size={18} />
             <span className="hidden sm:inline">Yeni Snippet</span>
           </button>
           <button
             onClick={toggleTheme}
-            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
           >
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>

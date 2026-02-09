@@ -23,17 +23,17 @@ export async function POST(
 
         const lastVersion = await prisma.snippetVersion.findFirst({
             where: { snippetId },
-            orderBy: { versionNum: 'desc' },
+            orderBy: { id: 'desc' },
         });
 
-        const nextMajor = (lastVersion?.versionNum ?? 0) + 1;
+        const nextMajor = (lastVersion?.major ?? 0) + 1;
 
         const releasedVersion = await prisma.snippetVersion.create({
             data: {
                 snippetId,
                 code,
                 title,
-                versionNum: nextMajor,
+                major: nextMajor,
             }
         });
 

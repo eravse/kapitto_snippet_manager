@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
+import { isExecutableCode } from '@/lib/security';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -73,6 +74,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Değişiklik kontrolü
     const codeChanged = existingSnippet.code !== code || existingSnippet.title !== title;
 
+    // Executable check
+    const isExecutable = isExecutableCode(code);
+    const isAdmin = session.role === 'admin';
+    // Eğer kod değiştiyse ve yeni kod executable ise ve user admin değilse PENDING'e çek
+    let newStatus = existingSnippet.status;
+    if (codeChanged && isExecutable && !isAdmin) {
+      newStatus = 'PENDING';
+    }
+
     // Transaction kullanarak tüm işlemleri sağlama alıyoruz
     const updatedSnippet = await prisma.$transaction(async (tx) => {
 
@@ -94,13 +104,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           teamId,
           isPublic: isPublic ?? existingSnippet.isPublic,
           isFavorite: isFavorite ?? existingSnippet.isFavorite,
+          isExecutable,
+          status: newStatus,
           tags: tagIds && tagIds.length > 0
-              ? {
-                create: tagIds.map((tagId: number) => ({
-                  tagId,
-                })),
-              }
-              : undefined,
+            ? {
+              create: tagIds.map((tagId: number) => ({
+                tagId,
+              })),
+            }
+            : undefined,
         },
         include: {
           language: true,
@@ -136,6 +148,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       action: 'UPDATE',
       entity: 'snippet',
       entityId: updatedSnippet.id,
+      oldValue: existingSnippet.code,
+      newValue: updatedSnippet.code,
       details: `Snippet güncellendi: ${title} ${codeChanged ? '(Yeni versiyon oluşturuldu)' : ''}`,
     });
 
@@ -150,7 +164,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { id } = await params;
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -163,8 +177,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: 'Snippet not found' }, { status: 404 });
     }
 
-    if (snippet.userId !== session.id && session.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Bu işlem için yönetici yetkisi gereklidir' }, { status: 403 });
     }
 
     await prisma.snippet.delete({

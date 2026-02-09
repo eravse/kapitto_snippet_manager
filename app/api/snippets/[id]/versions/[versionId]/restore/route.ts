@@ -25,7 +25,7 @@ export async function POST(
 
     const lastVersion = await prisma.snippetVersion.findFirst({
       where: { snippetId: parseInt(id) },
-      orderBy: { versionNum: 'desc' },
+      orderBy: { id: 'desc' },
     });
 
     const snippet = await prisma.snippet.update({
@@ -54,7 +54,7 @@ export async function POST(
         snippetId: parseInt(id),
         code: snippet.code,
         title: snippet.title,
-        versionNum: (lastVersion?.versionNum || 0) + 1,
+        minor: (lastVersion?.minor || 0) + 1,
       },
     });
 
@@ -62,7 +62,7 @@ export async function POST(
       action: 'UPDATE',
       entity: 'snippet',
       entityId: parseInt(id),
-      details: `Snippet version ${version.versionNum} restore edildi`,
+      details: `Snippet version ${version.minor} restore edildi`,
     });
 
     return NextResponse.json(snippet);

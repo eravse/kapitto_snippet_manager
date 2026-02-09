@@ -33,7 +33,17 @@ export default function CategoriesPage() {
     try {
       const response = await fetch('/api/categories');
       const data = await response.json();
-      setCategories(data);
+      
+      // Gelen verinin dizi olduğundan emin ol
+      if (Array.isArray(data)) {
+        setCategories(data);
+      } else if (data.categories) { // Eğer objenin içindeyse
+        setCategories(data.categories);
+      } else {
+        setCategories([]); // Beklenmedik durumda boş dizi set et
+      }
+      
+      
     } catch (error) {
       console.error('Load categories error:', error);
     }
@@ -109,7 +119,7 @@ export default function CategoriesPage() {
     }
   };
 
-  const filteredCategories = categories.filter(c =>
+  const filteredCategories = (categories || []).filter(c =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -123,7 +133,9 @@ export default function CategoriesPage() {
             {/* Header Bölümü */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-12">
               <div className="space-y-1">
+                
                 <h1 className="text-3xl font-black flex items-center gap-3 text-slate-800 dark:text-white">
+                  <div className="h-10 w-1 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full"></div>
                   <div className="p-2.5 bg-purple-600 rounded-xl shadow-xl shadow-purple-500/20">
                     <Layers className="text-white" size={28} />
                   </div>
@@ -192,7 +204,7 @@ export default function CategoriesPage() {
                     {/* Ana Kart İçeriği */}
                     <div className="flex flex-col items-center text-center space-y-6 pt-4">
                       <div
-                          className="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl shadow-lg transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                          className="w-20 h-20 rounded-xl flex items-center justify-center text-4xl shadow-lg transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
                           style={{
                             backgroundColor: `${category.color}10`,
                             border: `2px solid ${category.color}30`,

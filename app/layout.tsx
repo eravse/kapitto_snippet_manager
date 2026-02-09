@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
+import {Toaster} from "sonner";
 
 export const metadata: Metadata = {
   title: "Snippet Manager",
@@ -31,6 +32,7 @@ export default function RootLayout({
             {children}
           </AuthProvider>
         </ThemeProvider>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

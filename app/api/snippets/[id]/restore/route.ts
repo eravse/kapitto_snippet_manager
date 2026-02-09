@@ -41,7 +41,7 @@ export async function POST(
 
         // 4. Geri yükleme işlemini yeni bir "Minor" versiyon olarak kaydet
         const currentMinorCount = await prisma.snippetVersion.count({
-            where: { snippetId, versionNum: targetVersion.versionNum }
+            where: { snippetId, minor : targetVersion.minor }
         });
 
         await prisma.snippetVersion.create({
@@ -49,7 +49,7 @@ export async function POST(
                 snippetId: snippetId,
                 code: targetVersion.code,
                 title: `${targetVersion.title} (Geri Yüklendi)`,
-                versionNum:  targetVersion.versionNum
+                minor:  targetVersion.minor
             }
         });
 

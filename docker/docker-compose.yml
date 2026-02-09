@@ -1,11 +1,16 @@
-version: '3.8'
+version: '3.9'
 
 services:
   kapitto_snippet-manager:
-    image: eravse/kapitto_snippet_manager:amd-64-latest
+    image: eravse/kapitto_snippet_manager:amd-64-v2
     container_name: kapitto_snippet_manager
+    environment:
+      - JWT_SECRET=your-jwt-secret
+      - NEXTAUTH_SECRET=your-next-auth-secret
+      - NEXTAUTH_URL=http://192.168.0.24:3018
+      - NODE_ENV=production
     ports:
-      - "3012:3000"
+      - "3018:3000"
     restart: always
     volumes:
-      - ./prisma/data:/prisma/data
+      - ./prisma/data:/prisma/data:rw

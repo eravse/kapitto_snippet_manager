@@ -31,7 +31,7 @@ export default function SnippetCard({ snippet, onClick, isSelected }: SnippetCar
   return (
     <div
       onClick={onClick}
-      className={`p-4 rounded-lg border cursor-pointer transition-all ${
+      className={`p-4 rounded-xl border cursor-pointer transition-all ${
         isSelected
           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
           : 'border-[var(--border-color)] bg-[var(--card-bg)] hover:bg-[var(--card-hover)]'
@@ -58,7 +58,7 @@ export default function SnippetCard({ snippet, onClick, isSelected }: SnippetCar
         </div>
         <button
           onClick={handleCopy}
-          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
           title="Kodu kopyala"
         >
           {copied ? (

@@ -30,7 +30,7 @@ export default function EmojiPicker({ onSelect, selectedEmoji }: EmojiPickerProp
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-16 h-16 text-3xl border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors flex items-center justify-center bg-white dark:bg-gray-800"
+        className="w-16 h-16 text-3xl border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 transition-colors flex items-center justify-center bg-white dark:bg-gray-800"
       >
         {selectedEmoji || '😀'}
       </button>
@@ -41,7 +41,7 @@ export default function EmojiPicker({ onSelect, selectedEmoji }: EmojiPickerProp
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute z-50 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl overflow-hidden">
+          <div className="absolute z-50 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-xl overflow-hidden">
             <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
               {Object.keys(EMOJI_CATEGORIES).map((category) => (
                 <button
